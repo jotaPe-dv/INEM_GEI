@@ -102,6 +102,11 @@ st.sidebar.info(
 
 df_filtrado = df[df['tipo_tienda'].isin(tiendas_seleccionadas)].copy()
 
+# Validar que hay datos seleccionados
+if len(df_filtrado) == 0:
+    st.warning("⚠️ Por favor, selecciona al menos un tipo de tienda en el sidebar para ver los análisis.")
+    st.stop()
+
 # Calcular huella de carbono
 df_filtrado = calcular_huellas_dataframe(df_filtrado, factor_desperdicio)
 

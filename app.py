@@ -97,6 +97,21 @@ st.sidebar.info(
     "- 2.0x+: Alto desperdicio"
 )
 
+st.sidebar.markdown("---")
+st.sidebar.markdown("## 🧭 Navegación")
+seccion_actual = st.sidebar.radio(
+    "Ir a sección:",
+    [
+        "Panel Principal",
+        "Métricas",
+        "Gráficas",
+        "Recomendaciones",
+        "Asistente IA",
+        "Factor Medellín"
+    ],
+    index=0
+)
+
 # ============================================================================
 # FILTRAR DATOS
 # ============================================================================
@@ -115,237 +130,251 @@ df_filtrado = calcular_huellas_dataframe(df_filtrado, factor_desperdicio)
 # MÉTRICAS PRINCIPALES (KPIs)
 # ============================================================================
 
-st.markdown("## 📊 Métricas Principales")
-
 metricas = calcular_metricas_principales(df_filtrado)
+estadisticas = calcular_estadisticas_productos(df_filtrado)
 
-col1, col2, col3 = st.columns(3)
+if seccion_actual == "Panel Principal":
+    st.markdown("## 🏠 Panel Principal")
+    st.info("Usa el menú lateral para navegar entre métricas, gráficas, recomendaciones y asistente IA.")
 
-with col1:
-    st.metric(
-        label="📈 Emisiones Total (kg CO2e)",
-        value=f"{metricas['total_emisiones']:,.0f}",
-        delta="Mes Actual",
-        help="Huella de carbono total de todas las tiendas seleccionadas"
-    )
+if seccion_actual in ["Panel Principal", "Métricas"]:
+    st.markdown("## 📊 Métricas Principales")
+    col1, col2, col3 = st.columns(3)
 
-with col2:
-    st.metric(
-        label="🏢 Tienda Mayor Impacto",
-        value=metricas['tienda_mayor_impacto'],
-        delta=f"{metricas['emision_mayor_tienda']} kg CO2e",
-        help="Tienda con la mayor huella de carbono"
-    )
+    with col1:
+        st.metric(
+            label="📈 Emisiones Total (kg CO2e)",
+            value=f"{metricas['total_emisiones']:,.0f}",
+            delta="Mes Actual",
+            help="Huella de carbono total de todas las tiendas seleccionadas"
+        )
 
-with col3:
-    st.metric(
-        label="👤 Promedio por Estudiante (kg CO2e)",
-        value=f"{metricas['promedio_por_persona']:.4f}",
-        delta=f"De {metricas['total_personas']} personas",
-        help="Huella de carbono por persona en el colegio"
-    )
+    with col2:
+        st.metric(
+            label="🏢 Tienda Mayor Impacto",
+            value=metricas['tienda_mayor_impacto'],
+            delta=f"{metricas['emision_mayor_tienda']} kg CO2e",
+            help="Tienda con la mayor huella de carbono"
+        )
 
-st.markdown("---")
+    with col3:
+        st.metric(
+            label="👤 Promedio por Estudiante (kg CO2e)",
+            value=f"{metricas['promedio_por_persona']:.4f}",
+            delta=f"De {metricas['total_personas']} personas",
+            help="Huella de carbono por persona en el colegio"
+        )
+
+    st.markdown("---")
 
 # ============================================================================
 # SECCIÓN DE VISUALIZACIONES
 # ============================================================================
 
-st.markdown("## 📈 Análisis Visual")
+if seccion_actual == "Gráficas":
+    st.markdown("## 📈 Análisis Visual")
 
-# Fila 1: Gráfico de barras y gráfico circular
-col_grafico1, col_grafico2 = st.columns(2)
+    # Fila 1: Gráfico de barras y gráfico circular
+    col_grafico1, col_grafico2 = st.columns(2)
 
-with col_grafico1:
-    st.markdown("### Emisiones por Tienda")
-    
-    # Gráfico de barras - Emisiones por tienda
-    fig_barras = px.bar(
-        df_filtrado,
-        x='nombre_tienda',
-        y='huella_carbono_kg_co2e',
-        color='huella_carbono_kg_co2e',
-        color_continuous_scale='Reds',
-        labels={
-            'nombre_tienda': 'Tienda',
-            'huella_carbono_kg_co2e': 'Emisiones (kg CO2e)',
-            'tipo_tienda': 'Tipo de Tienda'
-        },
-        hover_name='nombre_tienda',
-        hover_data={
-            'tipo_tienda': True,
-            'huella_carbono_kg_co2e': ':.2f',
-            'nombre_tienda': False
-        }
-    )
-    
-    fig_barras.update_layout(
-        height=400,
-        showlegend=False,
-        hovermode='x unified',
-        font=dict(size=11)
-    )
-    
-    st.plotly_chart(fig_barras, use_container_width=True)
+    with col_grafico1:
+        st.markdown("### Emisiones por Tienda")
 
-with col_grafico2:
-    st.markdown("### Composición de Productos (Colegio)")
-    
-    # Gráfico circular - Proporción de productos
-    estadisticas = calcular_estadisticas_productos(df_filtrado)
-    
-    fig_pie = go.Figure(data=[go.Pie(
-        labels=['Ultraprocesados', 'Mixtos/Preparados', 'Naturales'],
-        values=[
-            estadisticas['ultraprocesados'],
-            estadisticas['mixtos'],
-            estadisticas['naturales']
-        ],
-        marker=dict(colors=['#ff6b6b', '#ffd93d', '#6bcf7f']),
-        textposition='inside',
-        textinfo='label+percent',
-        hovertemplate='<b>%{label}</b><br>%{percent}<extra></extra>'
-    )])
-    
-    fig_pie.update_layout(
-        height=400,
-        font=dict(size=12),
-        showlegend=True
-    )
-    
-    st.plotly_chart(fig_pie, use_container_width=True)
+        # Gráfico de barras - Emisiones por tienda
+        fig_barras = px.bar(
+            df_filtrado,
+            x='nombre_tienda',
+            y='huella_carbono_kg_co2e',
+            color='huella_carbono_kg_co2e',
+            color_continuous_scale='Reds',
+            labels={
+                'nombre_tienda': 'Tienda',
+                'huella_carbono_kg_co2e': 'Emisiones (kg CO2e)',
+                'tipo_tienda': 'Tipo de Tienda'
+            },
+            hover_name='nombre_tienda',
+            hover_data={
+                'tipo_tienda': True,
+                'huella_carbono_kg_co2e': ':.2f',
+                'nombre_tienda': False
+            }
+        )
 
-# Fila 2: Gráfico de dispersión
-col_grafico3 = st.columns(1)[0]
+        fig_barras.update_layout(
+            height=400,
+            showlegend=False,
+            hovermode='x unified',
+            font=dict(size=11)
+        )
 
-with col_grafico3:
-    st.markdown("### Relación: Ventas vs Huella de Carbono")
-    
-    fig_scatter = px.scatter(
-        df_filtrado,
-        x='ventas_mensuales',
-        y='huella_carbono_kg_co2e',
-        size='frecuencia_entregas',
-        color='tipo_tienda',
-        hover_name='nombre_tienda',
-        hover_data={
-            'ventas_mensuales': '$,.0f',
-            'huella_carbono_kg_co2e': ':.2f',
-            'tipo_tienda': True,
-            'frecuencia_entregas': True
-        },
-        labels={
-            'ventas_mensuales': 'Ventas Mensuales ($)',
-            'huella_carbono_kg_co2e': 'Emisiones (kg CO2e)',
-            'tipo_tienda': 'Tipo Tienda',
-            'frecuencia_entregas': 'Freq. Entregas'
-        },
-        title="Tamaño de la burbuja = Frecuencia de entregas"
-    )
-    
-    fig_scatter.update_layout(
-        height=400,
-        hovermode='closest',
-        font=dict(size=11)
-    )
-    
-    st.plotly_chart(fig_scatter, use_container_width=True)
+        st.plotly_chart(fig_barras, use_container_width=True)
 
-st.markdown("---")
+    with col_grafico2:
+        st.markdown("### Composición de Productos (Colegio)")
+
+        # Gráfico circular - Proporción de productos
+        fig_pie = go.Figure(data=[go.Pie(
+            labels=['Ultraprocesados', 'Mixtos/Preparados', 'Naturales'],
+            values=[
+                estadisticas['ultraprocesados'],
+                estadisticas['mixtos'],
+                estadisticas['naturales']
+            ],
+            marker=dict(colors=['#ff6b6b', '#ffd93d', '#6bcf7f']),
+            textposition='inside',
+            textinfo='label+percent',
+            hovertemplate='<b>%{label}</b><br>%{percent}<extra></extra>'
+        )])
+
+        fig_pie.update_layout(
+            height=400,
+            font=dict(size=12),
+            showlegend=True
+        )
+
+        st.plotly_chart(fig_pie, use_container_width=True)
+
+    # Fila 2: Gráfico de dispersión
+    col_grafico3 = st.columns(1)[0]
+
+    with col_grafico3:
+        st.markdown("### Relación: Ventas vs Huella de Carbono")
+
+        fig_scatter = px.scatter(
+            df_filtrado,
+            x='ventas_mensuales',
+            y='huella_carbono_kg_co2e',
+            size='frecuencia_entregas',
+            color='tipo_tienda',
+            hover_name='nombre_tienda',
+            hover_data={
+                'ventas_mensuales': '$,.0f',
+                'huella_carbono_kg_co2e': ':.2f',
+                'tipo_tienda': True,
+                'frecuencia_entregas': True
+            },
+            labels={
+                'ventas_mensuales': 'Ventas Mensuales ($)',
+                'huella_carbono_kg_co2e': 'Emisiones (kg CO2e)',
+                'tipo_tienda': 'Tipo Tienda',
+                'frecuencia_entregas': 'Freq. Entregas'
+            },
+            title="Tamaño de la burbuja = Frecuencia de entregas"
+        )
+
+        fig_scatter.update_layout(
+            height=400,
+            hovermode='closest',
+            font=dict(size=11)
+        )
+
+        st.plotly_chart(fig_scatter, use_container_width=True)
+
+    st.markdown("---")
 
 # ============================================================================
 # TABLA DE DETALLES (CON OPCIÓN DE OCULTAR)
 # ============================================================================
 
-with st.expander("📋 Ver Detalles de Tiendas", expanded=False):
-    # Preparar datos para la tabla
-    df_tabla = df_filtrado[[
-        'nombre_tienda', 'tipo_tienda', 'cantidad_ultraprocesada',
-        'cantidad_mixta', 'cantidad_natural', 'huella_carbono_kg_co2e'
-    ]].copy()
-    
-    df_tabla.columns = [
-        'Tienda', 'Tipo', 'Ultraprocesados', 'Mixtos', 'Naturales', 'Emisiones (kg CO2e)'
-    ]
-    
-    # Mostrar tabla con formato personalizado
-    st.dataframe(
-        df_tabla,
-        use_container_width=True,
-        hide_index=True
-    )
+if seccion_actual == "Gráficas":
+    with st.expander("📋 Ver Detalles de Tiendas", expanded=False):
+        # Preparar datos para la tabla
+        df_tabla = df_filtrado[[
+            'nombre_tienda', 'tipo_tienda', 'cantidad_ultraprocesada',
+            'cantidad_mixta', 'cantidad_natural', 'huella_carbono_kg_co2e'
+        ]].copy()
+        
+        df_tabla.columns = [
+            'Tienda', 'Tipo', 'Ultraprocesados', 'Mixtos', 'Naturales', 'Emisiones (kg CO2e)'
+        ]
+        
+        # Mostrar tabla con formato personalizado
+        st.dataframe(
+            df_tabla,
+            use_container_width=True,
+            hide_index=True
+        )
 
 # ============================================================================
 # SECCIÓN DE RECOMENDACIONES
 # ============================================================================
 
-st.markdown("## 💡 Recomendaciones Estratégicas")
+if seccion_actual == "Recomendaciones":
+    st.markdown("## 💡 Recomendaciones Estratégicas")
 
-recomendaciones = generar_recomendaciones(df_filtrado)
+    recomendaciones = generar_recomendaciones(df_filtrado)
 
-for i, rec in enumerate(recomendaciones, 1):
-    with st.container():
-        col_num, col_content = st.columns([0.5, 9.5])
-        
-        with col_num:
-            st.markdown(f"**#{i}**")
-        
-        with col_content:
-            st.markdown(f"### {rec['titulo']}")
-            st.markdown(f"{rec['descripcion']}")
-            st.info(f"💚 **Impacto Potencial:** {rec['impacto']}")
+    for i, rec in enumerate(recomendaciones, 1):
+        with st.container():
+            col_num, col_content = st.columns([0.5, 9.5])
+            
+            with col_num:
+                st.markdown(f"**#{i}**")
+            
+            with col_content:
+                st.markdown(f"### {rec['titulo']}")
+                st.markdown(f"{rec['descripcion']}")
+                st.info(f"💚 **Impacto Potencial:** {rec['impacto']}")
 
 # ============================================================================
 # INFORMACIÓN SOBRE MEDELLÍN Y FACTOR AMBIENTAL
 # ============================================================================
 
-st.markdown("---")
-st.markdown("## 🌳 Factor Medellín: Biodiversidad del Campus")
+if seccion_actual == "Factor Medellín":
+        st.markdown("---")
+        st.markdown("## 🌳 Factor Medellín: Biodiversidad del Campus")
 
-info_col1, info_col2 = st.columns(2)
+        info_col1, info_col2 = st.columns(2)
 
-with info_col1:
-    st.markdown("""
-    ### Teoría de Sumidero de Carbono
-    
-    El Colegio INEM cuenta con una **excelente cobertura arbórea** que actúa 
-    como sumidero natural de carbono. La biodiversidad del campus contribuye a:
-    
-    - **Absorción de CO2:** Un árbol adulto absorbe ~20-25 kg CO2/año
-    - **Compensación:** Los árboles del INEM compensan aproximadamente 
-      **50-100 kg CO2e/mes**
-    - **Impacto Total:** Esto representa una compensación del **10-15%** 
-      de la huella calculada
-    """)
+        with info_col1:
+                st.markdown("""
+                ### Teoría de Sumidero de Carbono
 
-with info_col2:
-    st.success("""
-    ### Datos del Campus INEM
-    
-    ✅ **Ubicación:** Medellín (Ciudad de la Primavera)
-    
-    ✅ **Biodiversidad:** Clima tropical-subtropical
-    
-    ✅ **Cobertura Verde:** Árboles nativos y ornamentales
-    
-    ✅ **Beneficio Ambiental:** Mejora de calidad del aire
-    
-    💚 **Compensación Estimada:** +50-100 kg CO2e/mes
-    """)
+                El Colegio INEM cuenta con una **excelente cobertura arbórea** que actúa
+                como sumidero natural de carbono. La biodiversidad del campus contribuye a:
+
+                - **Absorción de CO2:** Un árbol adulto absorbe ~20-25 kg CO2/año
+                - **Compensación:** Los árboles del INEM compensan aproximadamente
+                    **50-100 kg CO2e/mes**
+                - **Impacto Total:** Esto representa una compensación del **10-15%**
+                    de la huella calculada
+                """)
+
+        with info_col2:
+                st.success("""
+                ### Datos del Campus INEM
+
+                ✅ **Ubicación:** Medellín (Ciudad de la Primavera)
+
+                ✅ **Biodiversidad:** Clima tropical-subtropical
+
+                ✅ **Cobertura Verde:** Árboles nativos y ornamentales
+
+                ✅ **Beneficio Ambiental:** Mejora de calidad del aire
+
+                💚 **Compensación Estimada:** +50-100 kg CO2e/mes
+                """)
 
 # ============================================================================
 # ASISTENTE IA (LLAMA 3.3)
 # ============================================================================
 
-st.markdown("---")
-st.markdown("## 🤖 Asistente IA para Consultas Ambientales")
-
-with st.expander("Configurar Asistente IA", expanded=False):
+if seccion_actual == "Asistente IA":
+    st.markdown("---")
+    st.markdown("## 🤖 Asistente IA para Consultas Ambientales")
     st.caption(
-        "La app usa Llama 3.3 por Groq (API compatible OpenAI). "
-        "Configura tu clave en Streamlit Cloud en Secrets con el nombre GROQ_API_KEY."
+        "Haz preguntas sobre consumo y emisiones con base en los datos filtrados. "
+        "La clave se toma desde Streamlit Secrets (GROQ_API_KEY)."
     )
-    st.code('GROQ_API_KEY = "gsk_..."', language="toml")
+
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("## 🤖 Control Asistente")
+    pregunta_usuario = st.sidebar.text_area(
+        "Pregunta para el asistente:",
+        placeholder="Ej: ¿Qué acciones me reducen más emisiones este mes?",
+        height=110
+    )
+    enviar_pregunta = st.sidebar.button("Responder con IA", type="primary")
 
 api_key = st.secrets.get("GROQ_API_KEY")
 
@@ -361,10 +390,10 @@ contexto_ia = {
     "proporcion_productos": estadisticas,
 }
 
-st.write("Haz preguntas como: *¿Qué tienda debo intervenir primero?* o *¿Cómo bajo un 15% la huella este mes?*")
-pregunta_usuario = st.text_input("Escribe tu pregunta ambiental:")
+if seccion_actual == "Asistente IA":
+    st.write("Haz preguntas como: *¿Qué tienda debo intervenir primero?* o *¿Cómo bajo un 15% la huella este mes?*")
 
-if st.button("Responder con IA", type="primary"):
+if seccion_actual == "Asistente IA" and enviar_pregunta:
     if not pregunta_usuario.strip():
         st.warning("Escribe una pregunta para continuar.")
     elif not api_key:

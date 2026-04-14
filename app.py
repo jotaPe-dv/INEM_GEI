@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
+import os
+from openai import OpenAI
 from carbono_utils import (
     calcular_huellas_dataframe,
     calcular_metricas_principales,
@@ -331,6 +333,86 @@ with info_col2:
     
     💚 **Compensación Estimada:** +50-100 kg CO2e/mes
     """)
+
+# ============================================================================
+# ASISTENTE IA (LLAMA 3.3)
+# ============================================================================
+
+st.markdown("---")
+st.markdown("## 🤖 Asistente IA para Consultas Ambientales")
+
+with st.expander("Configurar Asistente IA", expanded=False):
+    st.caption(
+        "La app usa Llama 3.3 por Groq (API compatible OpenAI). "
+        "Guarda tu clave en Streamlit Cloud como secreto: GROQ_API_KEY."
+    )
+    api_key_input = st.text_input(
+        "Clave API de Groq (opcional si ya configuraste GROQ_API_KEY)",
+        type="password",
+        placeholder="gsk_...",
+        help="No se guarda en el repo. Solo se usa durante la sesión actual."
+    )
+
+api_key = api_key_input or st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+
+# Construimos un contexto resumido para que el asistente responda sobre datos reales del dashboard.
+contexto_ia = {
+    "factor_desperdicio": factor_desperdicio,
+    "tipos_tienda_seleccionados": list(tiendas_seleccionadas),
+    "total_emisiones": metricas["total_emisiones"],
+    "tienda_mayor_impacto": metricas["tienda_mayor_impacto"],
+    "emision_mayor_tienda": metricas["emision_mayor_tienda"],
+    "promedio_por_persona": metricas["promedio_por_persona"],
+    "total_personas": metricas["total_personas"],
+    "proporcion_productos": estadisticas,
+}
+
+st.write("Haz preguntas como: *¿Qué tienda debo intervenir primero?* o *¿Cómo bajo un 15% la huella este mes?*")
+pregunta_usuario = st.text_input("Escribe tu pregunta ambiental:")
+
+if st.button("Responder con IA", type="primary"):
+    if not pregunta_usuario.strip():
+        st.warning("Escribe una pregunta para continuar.")
+    elif not api_key:
+        st.error(
+            "No se encontró la clave API. Configura GROQ_API_KEY en Streamlit Secrets "
+            "o pégala en el campo de configuración."
+        )
+    else:
+        try:
+            client = OpenAI(
+                api_key=api_key,
+                base_url="https://api.groq.com/openai/v1"
+            )
+
+            system_prompt = (
+                "Eres un asesor ambiental del Colegio INEM en Medellín. "
+                "Respondes en español claro, no técnico, para directivos y profesores. "
+                "Usa solo el contexto entregado del dashboard, y si falta información dilo. "
+                "Da recomendaciones accionables sobre consumo, emisiones, residuos y logística. "
+                "Incluye cuando aplique el aporte de los árboles del campus como sumideros."
+            )
+
+            user_prompt = (
+                f"Contexto actual del dashboard: {contexto_ia}\n\n"
+                f"Pregunta del usuario: {pregunta_usuario}\n\n"
+                "Responde en máximo 6 viñetas y cierra con una recomendación prioritaria."
+            )
+
+            completion = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                temperature=0.2,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+
+            respuesta = completion.choices[0].message.content
+            st.success("Respuesta del asistente IA")
+            st.write(respuesta)
+        except Exception as e:
+            st.error(f"No fue posible consultar el asistente IA: {e}")
 
 # ============================================================================
 # PIE DE PÁGINA

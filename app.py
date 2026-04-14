@@ -74,7 +74,7 @@ st.sidebar.markdown("---")
 tipos_tienda = df['tipo_tienda'].unique()
 tiendas_seleccionadas = st.sidebar.multiselect(
     "Selecciona tipos de tienda:",
-    opciones=tipos_tienda,
+    tipos_tienda,
     default=tipos_tienda,
     help="Utiliza Ctrl+Click para seleccionar múltiples opciones"
 )

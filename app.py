@@ -24,6 +24,16 @@ st.set_page_config(
 # CSS personalizado para mejorar la estética
 st.markdown("""
     <style>
+    section[data-testid="stSidebar"] {
+        min-width: 340px;
+        max-width: 340px;
+    }
+    @media (max-width: 900px) {
+        section[data-testid="stSidebar"] {
+            min-width: 280px;
+            max-width: 280px;
+        }
+    }
     .metric-card {
         background-color: #f0f2f6;
         padding: 20px;
@@ -99,7 +109,7 @@ st.sidebar.info(
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("## 🧭 Navegación")
-seccion_actual = st.sidebar.radio(
+seccion_actual = st.sidebar.selectbox(
     "Ir a sección:",
     [
         "Panel Principal",
@@ -109,7 +119,8 @@ seccion_actual = st.sidebar.radio(
         "Asistente IA",
         "Factor Medellín"
     ],
-    index=0
+    index=0,
+    help="Selecciona una sección para mostrar solo ese contenido y mantener la vista limpia."
 )
 
 # ============================================================================
@@ -367,14 +378,12 @@ if seccion_actual == "Asistente IA":
         "La clave se toma desde Streamlit Secrets (GROQ_API_KEY)."
     )
 
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("## 🤖 Control Asistente")
-    pregunta_usuario = st.sidebar.text_area(
+    pregunta_usuario = st.text_area(
         "Pregunta para el asistente:",
         placeholder="Ej: ¿Qué acciones me reducen más emisiones este mes?",
         height=110
     )
-    enviar_pregunta = st.sidebar.button("Responder con IA", type="primary")
+    enviar_pregunta = st.button("Responder con IA", type="primary")
 
 api_key = st.secrets.get("GROQ_API_KEY")
 

@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-import os
 from openai import OpenAI
 from carbono_utils import (
     calcular_huellas_dataframe,
@@ -344,16 +343,11 @@ st.markdown("## 🤖 Asistente IA para Consultas Ambientales")
 with st.expander("Configurar Asistente IA", expanded=False):
     st.caption(
         "La app usa Llama 3.3 por Groq (API compatible OpenAI). "
-        "Guarda tu clave en Streamlit Cloud como secreto: GROQ_API_KEY."
+        "Configura tu clave en Streamlit Cloud en Secrets con el nombre GROQ_API_KEY."
     )
-    api_key_input = st.text_input(
-        "Clave API de Groq (opcional si ya configuraste GROQ_API_KEY)",
-        type="password",
-        placeholder="gsk_...",
-        help="No se guarda en el repo. Solo se usa durante la sesión actual."
-    )
+    st.code('GROQ_API_KEY = "gsk_..."', language="toml")
 
-api_key = api_key_input or st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+api_key = st.secrets.get("GROQ_API_KEY")
 
 # Construimos un contexto resumido para que el asistente responda sobre datos reales del dashboard.
 contexto_ia = {
@@ -375,8 +369,7 @@ if st.button("Responder con IA", type="primary"):
         st.warning("Escribe una pregunta para continuar.")
     elif not api_key:
         st.error(
-            "No se encontró la clave API. Configura GROQ_API_KEY en Streamlit Secrets "
-            "o pégala en el campo de configuración."
+            "No se encontró la clave API. Configura GROQ_API_KEY en Streamlit Secrets."
         )
     else:
         try:

@@ -1,0 +1,8 @@
+tienda_id,nombre_tienda,tipo_tienda,cantidad_ultraprocesada,cantidad_mixta,cantidad_natural,distancia_proveedor_km,frecuencia_entregas,ventas_mensuales
+1,Tienda Norte,Cafetería,250,180,120,15,12,2500000
+2,Tienda Sur,Tienda de Snacks,320,90,50,20,8,1800000
+3,Tienda Este,Cafetería,180,220,140,10,16,2200000
+4,Tienda Oeste,Tienda de Bebidas,150,100,80,25,4,1200000
+5,Tienda Centro,Comedor,200,300,250,8,20,3500000
+6,Tienda Zona A,Panadería,100,250,180,12,24,2000000
+7,Tienda Zona B,Tienda de Alimentos,280,160,110,18,10,2100000
